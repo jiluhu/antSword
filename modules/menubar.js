@@ -9,7 +9,9 @@ class Menubar {
   constructor(electron, app, mainWindow) {
 
     const Menu = electron.Menu;
-
+    const Tray = electron.Tray;
+    const path = require('path');
+    
     // 清空菜单栏
     Menu.setApplicationMenu(Menu.buildFromTemplate([]));
     // 监听重载菜单事件
@@ -20,6 +22,9 @@ class Menubar {
     this.electron = electron;
     this.app = app;
     this.Menu = Menu;
+    this.Tray = Tray;
+    this.path = path;
+    this.trayIcon = null;
     this.mainWindow = mainWindow;
   }
 
@@ -131,6 +136,58 @@ class Menubar {
     ];
     // 更新菜单栏
     this.Menu.setApplicationMenu(this.Menu.buildFromTemplate(template));
+    if (this.trayIcon) {
+      this.trayIcon.setContextMenu(this.Menu.buildFromTemplate([]));  
+    }else{
+      if (process.platform === 'darwin') {
+        this.trayIcon = new this.Tray(this.path.join(__dirname, '../static/imgs/tray-icon-mac.png'));
+      }else{
+        // windows linux 下的Tray图标
+        this.trayIcon = new this.Tray(this.path.join(__dirname, '../static/imgs/tray-icon-mac.png'));
+      }
+    }
+    var trayMenuTemplate = [
+      {
+        label: LANG['tray']['show'],
+        click: () => {
+          this.mainWindow.show();
+        }
+      }, {
+        label: LANG['tray']['hide'],
+        click: () => {
+          if (process.platform == 'darwin') {
+            this.app.hide();
+          }else{
+            this.mainWindow.hide();
+          }
+        }
+      }, {
+        label: LANG['tray']['settings'],
+        click: event.sender.send.bind(event.sender, 'menubar', 'settings')
+      }, {
+        label: LANG['tray']['about'],
+        click: event.sender.send.bind(event.sender, 'menubar', 'settings-about')
+      }, {
+        type: 'separator'
+      }, {
+        label: LANG['tray']['quit'],
+        click: this.app.quit.bind(this.app)
+      }
+    ];
+
+    this.trayIcon.on('click', () => {
+      if (process.platform == 'darwin') return;
+      if (this.mainWindow.isVisible()) {
+          this.mainWindow.hide();
+      }else{
+        this.mainWindow.show();
+      }
+    });
+
+    this.trayIcon.setToolTip(LANG['tray']['tip']);
+
+    this.trayIcon.setContextMenu(this.Menu.buildFromTemplate(trayMenuTemplate));
+
   }
 
 }
