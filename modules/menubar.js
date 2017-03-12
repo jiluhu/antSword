@@ -10,6 +10,7 @@ class Menubar {
 
     const Menu = electron.Menu;
     const Tray = electron.Tray;
+    const nativeImage = electron.nativeImage;
     const path = require('path');
     
     // 清空菜单栏
@@ -23,6 +24,7 @@ class Menubar {
     this.app = app;
     this.Menu = Menu;
     this.Tray = Tray;
+    this.nativeImage = nativeImage;
     this.path = path;
     this.trayIcon = null;
     this.mainWindow = mainWindow;
@@ -139,12 +141,15 @@ class Menubar {
     if (this.trayIcon) {
       this.trayIcon.setContextMenu(this.Menu.buildFromTemplate([]));  
     }else{
-      if (process.platform === 'darwin') {
-        this.trayIcon = new this.Tray(this.path.join(__dirname, '../static/imgs/tray-icon-mac.png'));
+      let image;
+      if (process.platform === 'darwin' || process.platform === 'linux') {
+         image = this.nativeImage.createFromPath(this.path.join(__dirname, '../static/imgs/tray-icon-mac-2.png'));
       }else{
-        // windows linux 下的Tray图标
-        this.trayIcon = new this.Tray(this.path.join(__dirname, '../static/imgs/tray-icon-mac.png'));
+        // windows下的Tray图标
+        image = this.nativeImage.createFromPath(this.path.join(__dirname, '../static/imgs/tray-icon-win-colorful.ico'));
       }
+      image.setTemplateImage(true);
+      this.trayIcon = new this.Tray(image);
     }
     var trayMenuTemplate = [
       {
