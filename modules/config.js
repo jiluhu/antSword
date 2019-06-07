@@ -38,6 +38,7 @@ class Conf {
     this.tmpPath;
     this.cachePath;
     this.plugPath;
+    this.downloadPath;
   }
 
   /**
@@ -54,6 +55,17 @@ class Conf {
    */
   get cachePath() {
     let _ = path.join(this.basePath, '/cache/');
+    // 创建缓存目录
+    !fs.existsSync(_) ? fs.mkdirSync(_) : null;
+    return _;
+  }
+
+  /**
+   * 获取默认下载目录
+   * @return {String} dir-path
+   */
+  get downloadPath() {
+    let _ = path.join(this.basePath, 'downloads');
     // 创建缓存目录
     !fs.existsSync(_) ? fs.mkdirSync(_) : null;
     return _;

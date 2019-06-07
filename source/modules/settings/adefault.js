@@ -18,6 +18,7 @@ class ADefault {
       filemanager: {
         openfileintab: false,
         bookmarks: {},
+        downloadpath: path.join(process.env.AS_WORKDIR, 'antData', 'downloads'),
       },
       database: {
         bookmarks: {},
@@ -34,25 +35,29 @@ class ADefault {
     // 读取配置
     const filemanager_settings = JSON.parse(antSword['storage']("adefault_filemanager", false, JSON.stringify(default_config.filemanager)));
     this.filemanager_settings = filemanager_settings;
-    if(!this.filemanager_settings.bookmarks){
+    if (!this.filemanager_settings.bookmarks) {
       this.filemanager_settings.bookmarks = default_config.filemanager.bookmarks;
+    }
+    // TODO: Add default 'downloadpath' for filemanager
+    if (!this.filemanager_settings.downloadpath) {
+      this.filemanager_settings.downloadpath = default_config.filemanager.downloadpath;
     }
 
     const database_settings = JSON.parse(antSword['storage']("adefault_database", false, JSON.stringify(default_config.database)));
     this.database_settings = database_settings;
-    if(!this.database_settings.bookmarks){
+    if (!this.database_settings.bookmarks) {
       this.database_settings.bookmarks = default_config.database.bookmarks;
     }
 
     const shellmanager_settings = JSON.parse(antSword['storage']("adefault_shellmanager", false, JSON.stringify(default_config.shellmanager)));
     this.shellmanager_settings = shellmanager_settings;
-    if(!this.shellmanager_settings.headers) {
+    if (!this.shellmanager_settings.headers) {
       this.shellmanager_settings.headers = default_config.shellmanager.headers;
     }
-    if(!this.shellmanager_settings.bodys) {
+    if (!this.shellmanager_settings.bodys) {
       this.shellmanager_settings.bodys = default_config.shellmanager.bodys;
     }
-    if(!this.shellmanager_settings.others) {
+    if (!this.shellmanager_settings.others) {
       this.shellmanager_settings.others = default_config.shellmanager.others;
     }
     const toolbar = cell.attachToolbar();
@@ -64,62 +69,73 @@ class ADefault {
       type: 'block', name: 'filemanager', list: [
         // {type: "label", label: LANG['filemanager']['title']},
         {
-          type: "fieldset", label: `<i class="fa fa-folder"></i> ${LANG['filemanager']['title']}`, list:[
-            { type: "block", list: [
-              {type: "label", label: LANG['filemanager']['openfileintab']['title']},
-              {type: 'newcolumn', offset:20},
-              {
-              type: "radio", label: LANG['filemanager']['openfileintab']['window'], name: 'openfileintab', checked: filemanager_settings.openfileintab == false , position: "label-right", value: false,
-              },
-              {type: 'newcolumn', offset:20},
-              {
-                type: "radio", label: LANG['filemanager']['openfileintab']['tab'], name: 'openfileintab', checked: filemanager_settings.openfileintab == true , position: "label-right", value: true,
-              }
-            ]},
+          type: "fieldset", label: `<i class="fa fa-folder"></i> ${LANG['filemanager']['title']}`, list: [
+            {
+              type: "block", list: [
+                { type: "label", label: LANG['filemanager']['openfileintab']['title'] },
+                { type: 'newcolumn', offset: 20 },
+                {
+                  type: "radio", label: LANG['filemanager']['openfileintab']['window'], name: 'openfileintab', checked: filemanager_settings.openfileintab == false, position: "label-right", value: false,
+                },
+                { type: 'newcolumn', offset: 20 },
+                {
+                  type: "radio", label: LANG['filemanager']['openfileintab']['tab'], name: 'openfileintab', checked: filemanager_settings.openfileintab == true, position: "label-right", value: true,
+                }
+              ]
+            },
             // 后续文件管理其它设置
-            { type: 'block', list: [
-              {type: 'label', label: LANG['filemanager']['bookmark']['title']},
-              {type: 'container', name: 'filemanager_bookmarks', inputWidth: 600, inputHeight: 200},
-            ]},
+            {
+              type: 'block', list: [
+                { type: 'label', label: LANG['filemanager']['bookmark']['title'] },
+                { type: 'container', name: 'filemanager_bookmarks', inputWidth: 600, inputHeight: 200 },
+              ]
+            },
           ]
         }, {
           type: 'fieldset', label: `<i class="fa fa-database"></i> ${LANG['database']['title']}`, list: [
-            { type: 'block', list: [
-              { type: 'label', label: `${LANG['database']['bookmark']['title']}` },
-              {type: 'container', name: 'database_bookmarks', inputWidth: 600, inputHeight: 200},
-            ]},
+            {
+              type: 'block', list: [
+                { type: 'label', label: `${LANG['database']['bookmark']['title']}` },
+                { type: 'container', name: 'database_bookmarks', inputWidth: 600, inputHeight: 200 },
+              ]
+            },
           ]
         }, {
           type: 'fieldset', label: `<i class="fa fa-th-large"></i> ${LANG['shellmanager']['title']}`, list: [
-            { type: 'block', list: [
-              { type: 'checkbox', position: 'label-right', name: 'shellmanager_ignore-https', label: LANG['shellmanager']['other']['nohttps'], checked: self.shellmanager_settings.others['ignore-https'] === 1 },
-              { type: "label", label: LANG['shellmanager']['other']['requestTimeout']},
-              { type: "combo", position: 'label-right', label: '/ms', inputWidth: 100, name: "shellmanager_request-timeout", options: ((items) => {
-                let ret = [];
-                // 如果自定义的路径不在items里，则++
-                if (items.indexOf(self.shellmanager_settings.others['request-timeout']) === -1) {
-                  items.unshift(self.shellmanager_settings.others['request-timeout']);
-                }
-                items.map((_) => {
-                  ret.push({
-                    text: _,
-                    value: _,
-                    selected: self.shellmanager_settings.others['request-timeout'] === _
-                  })
-                });
-                return ret;
-              })([
-                '5000', '10000', '30000', '60000'
-              ])},
-              { type: 'label', label: LANG['shellmanager']['header']['title'] },
-              { type: 'container', name: 'shellmanager_headers', inputWidth: 600, inputHeight: 150 },
-              { type: 'label', label: LANG['shellmanager']['body']['title'] },
-              { type: 'container', name: 'shellmanager_bodys', inputWidth: 600, inputHeight: 150 },
-            ]},
+            {
+              type: 'block', list: [
+                { type: 'checkbox', position: 'label-right', name: 'shellmanager_ignore-https', label: LANG['shellmanager']['other']['nohttps'], checked: self.shellmanager_settings.others['ignore-https'] === 1 },
+                { type: "label", label: LANG['shellmanager']['other']['requestTimeout'] },
+                {
+                  type: "combo", position: 'label-right', label: '/ms', inputWidth: 100, name: "shellmanager_request-timeout", options: ((items) => {
+                    let ret = [];
+                    // 如果自定义的路径不在items里，则++
+                    if (items.indexOf(self.shellmanager_settings.others['request-timeout']) === -1) {
+                      items.unshift(self.shellmanager_settings.others['request-timeout']);
+                    }
+                    items.map((_) => {
+                      ret.push({
+                        text: _,
+                        value: _,
+                        selected: self.shellmanager_settings.others['request-timeout'] === _
+                      })
+                    });
+                    return ret;
+                  })([
+                    '5000', '10000', '30000', '60000'
+                  ])
+                },
+                { type: 'label', label: LANG['shellmanager']['header']['title'] },
+                { type: 'container', name: 'shellmanager_headers', inputWidth: 600, inputHeight: 150 },
+                { type: 'label', label: LANG['shellmanager']['body']['title'] },
+                { type: 'container', name: 'shellmanager_bodys', inputWidth: 600, inputHeight: 150 },
+              ]
+            },
           ]
         },
         // 后续其它模块
-      ]}, 
+      ]
+    },
     ], true);
     form.enableLiveValidation(true);
 
@@ -135,8 +151,8 @@ class ADefault {
     bookmark_grid.setColAlign("center,left,left");
     bookmark_grid.enableMultiselect(true);
 
-    bookmark_grid.attachEvent('onRightClick', (id, lid, event)=>{
-      let _ids = (bookmark_grid.getSelectedId()|| '').split(',');
+    bookmark_grid.attachEvent('onRightClick', (id, lid, event) => {
+      let _ids = (bookmark_grid.getSelectedId() || '').split(',');
       if (id === -1) {
         _ids = [];
       } else if (_ids.length === 1) {
@@ -151,42 +167,44 @@ class ADefault {
       id = ids[0] || '';
 
       let menu = [
-        { text: LANG['filemanager']['bookmark']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addBookMarks.bind(self)},
-        { text: LANG['filemanager']['bookmark']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
-          self.delBookMarks(ids);
-        }},
+        { text: LANG['filemanager']['bookmark']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addBookMarks.bind(self) },
+        {
+          text: LANG['filemanager']['bookmark']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
+            self.delBookMarks(ids);
+          }
+        },
       ];
       bmenu(menu, event);
       return true;
     });
 
-    bookmark_grid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
+    bookmark_grid.attachEvent("onEditCell", function (stage, rId, cInd, nValue, oValue) {
       // 2 编辑完成
-      if(stage === 2) {
-        if(nValue === oValue){return;}
+      if (stage === 2) {
+        if (nValue === oValue) { return; }
         var obname = bookmark_grid.getRowAttribute(rId, "bname");
         var obpath = bookmark_grid.getRowAttribute(rId, "bpath");
-        switch(cInd){ // 具体是哪一列被编辑了
+        switch (cInd) { // 具体是哪一列被编辑了
           case 1: // name
             // if(!nValue.match(/^[a-zA-Z0-9_/]+$/)){
             //   toastr.error(LANG["filemanager"]['bookmark']['edit']["name_invalid"], LANG_T['error']);
             //   return
             // }
-            if(self.filemanager_settings.bookmarks.hasOwnProperty(obname)){
+            if (self.filemanager_settings.bookmarks.hasOwnProperty(obname)) {
               delete self.filemanager_settings.bookmarks[obname];
               self.filemanager_settings.bookmarks[nValue] = obpath;
             }
-            toastr.success(LANG["filemanager"]['bookmark']['edit']["success"],LANG_T["success"]);
+            toastr.success(LANG["filemanager"]['bookmark']['edit']["success"], LANG_T["success"]);
             break;
           case 2: // path
-            nValue = nValue.replace(/\\/g,'/');
-            if(!nValue.endsWith('/')){
+            nValue = nValue.replace(/\\/g, '/');
+            if (!nValue.endsWith('/')) {
               nValue += '/';
             }
-            if(self.filemanager_settings.bookmarks.hasOwnProperty(obname)){
+            if (self.filemanager_settings.bookmarks.hasOwnProperty(obname)) {
               self.filemanager_settings.bookmarks[obname] = nValue;
             }
-          break;
+            break;
         }
         antSword['storage']('adefault_filemanager', self.filemanager_settings);
         self.reloadFMBookmarks();
@@ -209,8 +227,8 @@ class ADefault {
     db_bookmark_grid.setColAlign("center,left,left");
     db_bookmark_grid.enableMultiselect(true);
 
-    db_bookmark_grid.attachEvent('onRightClick', (id, lid, event)=>{
-      let _ids = (db_bookmark_grid.getSelectedId()|| '').split(',');
+    db_bookmark_grid.attachEvent('onRightClick', (id, lid, event) => {
+      let _ids = (db_bookmark_grid.getSelectedId() || '').split(',');
       if (id === -1) {
         _ids = [];
       } else if (_ids.length === 1) {
@@ -225,37 +243,39 @@ class ADefault {
       id = ids[0] || '';
 
       let dbmenu = [
-        { text: LANG['database']['bookmark']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addDatabaseBookMarks.bind(self)},
-        { text: LANG['database']['bookmark']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
-          self.delDatabaseBookMarks(ids);
-        }},
+        { text: LANG['database']['bookmark']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addDatabaseBookMarks.bind(self) },
+        {
+          text: LANG['database']['bookmark']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
+            self.delDatabaseBookMarks(ids);
+          }
+        },
       ];
       bmenu(dbmenu, event);
       return true;
     });
-    db_bookmark_grid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
+    db_bookmark_grid.attachEvent("onEditCell", function (stage, rId, cInd, nValue, oValue) {
       // 2 编辑完成
-      if(stage === 2) {
-        if(nValue === oValue){return;}
+      if (stage === 2) {
+        if (nValue === oValue) { return; }
         var obname = db_bookmark_grid.getRowAttribute(rId, "bname"); // string
         var obpath = db_bookmark_grid.getRowAttribute(rId, "bpath"); // base64 格式的
-        switch(cInd){ // 具体是哪一列被编辑了
+        switch (cInd) { // 具体是哪一列被编辑了
           case 1: // name
             // if(!nValue.match(/^[a-zA-Z0-9_/]+$/)){
             //   toastr.error(LANG["database"]['bookmark']['edit']["name_invalid"], LANG_T['error']);
             //   return
             // }
-            if(self.database_settings.bookmarks.hasOwnProperty(obname)){
+            if (self.database_settings.bookmarks.hasOwnProperty(obname)) {
               delete self.database_settings.bookmarks[obname];
               self.database_settings.bookmarks[nValue] = obpath;
             }
-            toastr.success(LANG["database"]['bookmark']['edit']["success"],LANG_T["success"]);
+            toastr.success(LANG["database"]['bookmark']['edit']["success"], LANG_T["success"]);
             break;
           case 2: // sql
-            if(self.database_settings.bookmarks.hasOwnProperty(obname)){
+            if (self.database_settings.bookmarks.hasOwnProperty(obname)) {
               self.database_settings.bookmarks[obname] = Buffer.from(nValue).toString('base64');
             }
-          break;
+            break;
         }
         antSword['storage']('adefault_database', self.database_settings);
         self.reloadDatabaseBookmarks();
@@ -265,14 +285,14 @@ class ADefault {
     this.db_bookmark_grid = db_bookmark_grid;
     // 保存
     toolbar.attachEvent('onClick', (id) => {
-      switch(id){
+      switch (id) {
         case 'save':
-          if(form.validate()){
+          if (form.validate()) {
             var _formvals = form.getValues();
             let config = default_config;
             config.filemanager.openfileintab = _formvals['openfileintab'];
             config.filemanager.bookmarks = self.filemanager_settings.bookmarks;
-            
+
             config.database.bookmarks = self.database_settings.bookmarks;
 
             config.shellmanager.headers = self.shellmanager_settings.headers;
@@ -292,10 +312,10 @@ class ADefault {
             }, (_) => {
               location.reload();
             });
-          }else{
+          } else {
             toastr.error(LANG['error'], LANG_T['error']);
           }
-        break;
+          break;
       }
     });
 
@@ -313,8 +333,8 @@ class ADefault {
     shellmanager_headers_grid.setColAlign("center,left,left");
     shellmanager_headers_grid.enableMultiselect(true);
 
-    shellmanager_headers_grid.attachEvent('onRightClick', (id, lid, event)=>{
-      let _ids = (shellmanager_headers_grid.getSelectedId()|| '').split(',');
+    shellmanager_headers_grid.attachEvent('onRightClick', (id, lid, event) => {
+      let _ids = (shellmanager_headers_grid.getSelectedId() || '').split(',');
       if (id === -1) {
         _ids = [];
       } else if (_ids.length === 1) {
@@ -329,38 +349,40 @@ class ADefault {
       id = ids[0] || '';
 
       let menu = [
-        { text: LANG['shellmanager']['header']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addShellmanagerHeaders.bind(self)},
-        { text: LANG['shellmanager']['header']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
-          self.delShellmanagerHeaders(ids);
-        }},
+        { text: LANG['shellmanager']['header']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addShellmanagerHeaders.bind(self) },
+        {
+          text: LANG['shellmanager']['header']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
+            self.delShellmanagerHeaders(ids);
+          }
+        },
       ];
       bmenu(menu, event);
       return true;
     });
 
-    shellmanager_headers_grid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
+    shellmanager_headers_grid.attachEvent("onEditCell", function (stage, rId, cInd, nValue, oValue) {
       // 2 编辑完成
-      if(stage === 2) {
-        if(nValue === oValue){return;}
+      if (stage === 2) {
+        if (nValue === oValue) { return; }
         var obname = shellmanager_headers_grid.getRowAttribute(rId, "bname");
         var obpath = shellmanager_headers_grid.getRowAttribute(rId, "bvalue");
-        switch(cInd){ // 具体是哪一列被编辑了
+        switch (cInd) { // 具体是哪一列被编辑了
           case 1: // name
             // if(!nValue.match(/^[a-zA-Z0-9_/]+$/)){
             //   toastr.error(LANG["filemanager"]['bookmark']['edit']["name_invalid"], LANG_T['error']);
             //   return
             // }
-            if(self.shellmanager_settings.headers.hasOwnProperty(obname)){
+            if (self.shellmanager_settings.headers.hasOwnProperty(obname)) {
               delete self.shellmanager_settings.headers[obname];
               self.shellmanager_settings.headers[nValue] = obpath;
             }
             toastr.success(LANG["shellmanager"]['header']['edit']["success"], LANG_T["success"]);
             break;
           case 2: // value
-            if(self.shellmanager_settings.headers.hasOwnProperty(obname)){
+            if (self.shellmanager_settings.headers.hasOwnProperty(obname)) {
               self.shellmanager_settings.headers[obname] = nValue;
             }
-          break;
+            break;
         }
         antSword['storage']('adefault_shellmanager', self.shellmanager_settings);
         self.reloadShellmanagerHeaders();
@@ -383,8 +405,8 @@ class ADefault {
     shellmanager_bodys_grid.setColAlign("center,left,left");
     shellmanager_bodys_grid.enableMultiselect(true);
 
-    shellmanager_bodys_grid.attachEvent('onRightClick', (id, lid, event)=>{
-      let _ids = (shellmanager_bodys_grid.getSelectedId()|| '').split(',');
+    shellmanager_bodys_grid.attachEvent('onRightClick', (id, lid, event) => {
+      let _ids = (shellmanager_bodys_grid.getSelectedId() || '').split(',');
       if (id === -1) {
         _ids = [];
       } else if (_ids.length === 1) {
@@ -399,38 +421,40 @@ class ADefault {
       id = ids[0] || '';
 
       let menu = [
-        { text: LANG['shellmanager']['body']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addShellmanagerBodys.bind(self)},
-        { text: LANG['shellmanager']['body']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
-          self.delShellmanagerBodys(ids);
-        }},
+        { text: LANG['shellmanager']['body']['bmenu']['add'], icon: 'fa fa-plus-circle', action: self.addShellmanagerBodys.bind(self) },
+        {
+          text: LANG['shellmanager']['body']['bmenu']['del'], icon: 'fa fa-trash-o', action: () => {
+            self.delShellmanagerBodys(ids);
+          }
+        },
       ];
       bmenu(menu, event);
       return true;
     });
 
-    shellmanager_bodys_grid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
+    shellmanager_bodys_grid.attachEvent("onEditCell", function (stage, rId, cInd, nValue, oValue) {
       // 2 编辑完成
-      if(stage === 2) {
-        if(nValue === oValue){return;}
+      if (stage === 2) {
+        if (nValue === oValue) { return; }
         var obname = shellmanager_bodys_grid.getRowAttribute(rId, "bname");
         var obpath = shellmanager_bodys_grid.getRowAttribute(rId, "bvalue");
-        switch(cInd){ // 具体是哪一列被编辑了
+        switch (cInd) { // 具体是哪一列被编辑了
           case 1: // name
             // if(!nValue.match(/^[a-zA-Z0-9_/]+$/)){
             //   toastr.error(LANG["shellmanager"]['body']['edit']["name_invalid"], LANG_T['error']);
             //   return
             // }
-            if(self.shellmanager_settings.bodys.hasOwnProperty(obname)){
+            if (self.shellmanager_settings.bodys.hasOwnProperty(obname)) {
               delete self.shellmanager_settings.bodys[obname];
               self.shellmanager_settings.bodys[nValue] = obpath;
             }
             toastr.success(LANG["shellmanager"]['body']['edit']["success"], LANG_T["success"]);
             break;
           case 2: // path
-            if(self.shellmanager_settings.bodys.hasOwnProperty(obname)){
+            if (self.shellmanager_settings.bodys.hasOwnProperty(obname)) {
               self.shellmanager_settings.bodys[obname] = nValue;
             }
-          break;
+            break;
         }
         antSword['storage']('adefault_shellmanager', self.shellmanager_settings);
         self.reloadShellmanagerBodys();
@@ -441,7 +465,7 @@ class ADefault {
     this.shellmanager_bodys_grid = shellmanager_bodys_grid;
 
     // grid右键
-    [ bookmark_grid, db_bookmark_grid, shellmanager_headers_grid, shellmanager_bodys_grid].forEach((g) => {
+    [bookmark_grid, db_bookmark_grid, shellmanager_headers_grid, shellmanager_bodys_grid].forEach((g) => {
       // 空白数据右键fix
       $('.objbox').on('contextmenu', (e) => {
         (e.target.nodeName === 'DIV' && e.target.grid === g && g.callEvent instanceof Function && antSword['tabbar'].getActiveTab() === "tab_about" && sidebar.getActiveItem() === "adefault") ? g.callEvent('onRightClick', [-1, -1, e]) : null;
@@ -462,11 +486,11 @@ class ADefault {
   }
 
   // 重载 bookmarks grid
-  reloadFMBookmarks(){
+  reloadFMBookmarks() {
     let self = this;
     let data = [];
     let _id = 1;
-    Object.keys(self.filemanager_settings.bookmarks).map((t)=>{
+    Object.keys(self.filemanager_settings.bookmarks).map((t) => {
       data.push({
         id: _id,
         bname: t,
@@ -479,7 +503,7 @@ class ADefault {
       });
       _id++;
     });
-    if(data.length == 0){
+    if (data.length == 0) {
       data.push({
         id: _id,
         bname: '',
@@ -510,12 +534,12 @@ class ADefault {
         let bname = _bname.val();
         let bpath = _bpath.val();
         let gbm = self.filemanager_settings.bookmarks;
-        if(gbm.hasOwnProperty(bname)) {
+        if (gbm.hasOwnProperty(bname)) {
           _bname.focus();
           return toastr.warning(LANG['filemanager']['bookmark']['add']['namedup'], LANG_T['warning']);
         }
-        bpath = bpath.replace(/\\/g,'/');
-        if(!bpath.endsWith('/')) {
+        bpath = bpath.replace(/\\/g, '/');
+        if (!bpath.endsWith('/')) {
           bpath += '/';
         }
         gbm[bname] = bpath;
@@ -530,11 +554,11 @@ class ADefault {
 
   delBookMarks(ids) {
     let self = this;
-    if(ids.length === 1 && !ids[0]) {
+    if (ids.length === 1 && !ids[0]) {
       return
     }
     layer.confirm(
-      LANG['filemanager']['bookmark']['del']['confirm'](ids.length > 1 ? ids.length:ids[0]),
+      LANG['filemanager']['bookmark']['del']['confirm'](ids.length > 1 ? ids.length : ids[0]),
       {
         icon: 2,
         shift: 6,
@@ -542,8 +566,8 @@ class ADefault {
       },
       (_) => {
         layer.close(_);
-        ids.map((p)=>{
-          if(self.filemanager_settings.bookmarks.hasOwnProperty(p)) {
+        ids.map((p) => {
+          if (self.filemanager_settings.bookmarks.hasOwnProperty(p)) {
             delete self.filemanager_settings.bookmarks[p];
           }
         });
@@ -555,11 +579,11 @@ class ADefault {
   }
 
   // 重载 database_bookmarks grid
-  reloadDatabaseBookmarks(){
+  reloadDatabaseBookmarks() {
     let self = this;
     let data = [];
     let _id = 1;
-    Object.keys(self.database_settings.bookmarks).map((t)=>{
+    Object.keys(self.database_settings.bookmarks).map((t) => {
       data.push({
         id: _id,
         bname: t,
@@ -572,7 +596,7 @@ class ADefault {
       });
       _id++;
     });
-    if(data.length == 0){
+    if (data.length == 0) {
       data.push({
         id: _id,
         bname: '',
@@ -603,7 +627,7 @@ class ADefault {
         let bname = _bname.val();
         let bpath = _bpath.val();
         let gbm = self.database_settings.bookmarks;
-        if(gbm.hasOwnProperty(bname)) {
+        if (gbm.hasOwnProperty(bname)) {
           _bname.focus();
           return toastr.warning(LANG['database']['bookmark']['add']['namedup'], LANG_T['warning']);
         }
@@ -623,11 +647,11 @@ class ADefault {
 
   delDatabaseBookMarks(ids) {
     let self = this;
-    if(ids.length === 1 && !ids[0]) {
+    if (ids.length === 1 && !ids[0]) {
       return
     }
     layer.confirm(
-      LANG['database']['bookmark']['del']['confirm'](ids.length > 1 ? ids.length:ids[0]),
+      LANG['database']['bookmark']['del']['confirm'](ids.length > 1 ? ids.length : ids[0]),
       {
         icon: 2,
         shift: 6,
@@ -635,8 +659,8 @@ class ADefault {
       },
       (_) => {
         layer.close(_);
-        ids.map((p)=>{
-          if(self.database_settings.bookmarks.hasOwnProperty(p)) {
+        ids.map((p) => {
+          if (self.database_settings.bookmarks.hasOwnProperty(p)) {
             delete self.database_settings.bookmarks[p];
           }
         });
@@ -648,11 +672,11 @@ class ADefault {
   }
 
   // 重载 shellmanager headers grid
-  reloadShellmanagerHeaders(){
+  reloadShellmanagerHeaders() {
     let self = this;
     let data = [];
     let _id = 1;
-    Object.keys(self.shellmanager_settings.headers).map((t)=>{
+    Object.keys(self.shellmanager_settings.headers).map((t) => {
       data.push({
         id: _id,
         bname: t,
@@ -665,7 +689,7 @@ class ADefault {
       });
       _id++;
     });
-    if(data.length == 0){
+    if (data.length == 0) {
       data.push({
         id: _id,
         bname: '',
@@ -696,7 +720,7 @@ class ADefault {
         let bname = _bname.val();
         let bvalue = _bvalue.val();
         let gbm = self.shellmanager_settings.headers;
-        if(gbm.hasOwnProperty(bname)) {
+        if (gbm.hasOwnProperty(bname)) {
           _bname.focus();
           return toastr.warning(LANG['shellmanager']['header']['add']['namedup'], LANG_T['warning']);
         }
@@ -712,11 +736,11 @@ class ADefault {
 
   delShellmanagerHeaders(ids) {
     let self = this;
-    if(ids.length === 1 && !ids[0]) {
+    if (ids.length === 1 && !ids[0]) {
       return
     }
     layer.confirm(
-      LANG['shellmanager']['header']['del']['confirm'](ids.length > 1 ? ids.length:ids[0]),
+      LANG['shellmanager']['header']['del']['confirm'](ids.length > 1 ? ids.length : ids[0]),
       {
         icon: 2,
         shift: 6,
@@ -724,8 +748,8 @@ class ADefault {
       },
       (_) => {
         layer.close(_);
-        ids.map((p)=>{
-          if(self.shellmanager_settings.headers.hasOwnProperty(p)) {
+        ids.map((p) => {
+          if (self.shellmanager_settings.headers.hasOwnProperty(p)) {
             delete self.shellmanager_settings.headers[p];
           }
         });
@@ -737,11 +761,11 @@ class ADefault {
   }
 
   // 重载 shellmanager bodys grid
-  reloadShellmanagerBodys(){
+  reloadShellmanagerBodys() {
     let self = this;
     let data = [];
     let _id = 1;
-    Object.keys(self.shellmanager_settings.bodys).map((t)=>{
+    Object.keys(self.shellmanager_settings.bodys).map((t) => {
       data.push({
         id: _id,
         bname: t,
@@ -754,7 +778,7 @@ class ADefault {
       });
       _id++;
     });
-    if(data.length == 0){
+    if (data.length == 0) {
       data.push({
         id: _id,
         bname: '',
@@ -785,7 +809,7 @@ class ADefault {
         let bname = _bname.val();
         let bvalue = _bvalue.val();
         let gbm = self.shellmanager_settings.bodys;
-        if(gbm.hasOwnProperty(bname)) {
+        if (gbm.hasOwnProperty(bname)) {
           _bname.focus();
           return toastr.warning(LANG['shellmanager']['body']['add']['namedup'], LANG_T['warning']);
         }
@@ -801,11 +825,11 @@ class ADefault {
 
   delShellmanagerBodys(ids) {
     let self = this;
-    if(ids.length === 1 && !ids[0]) {
+    if (ids.length === 1 && !ids[0]) {
       return
     }
     layer.confirm(
-      LANG['shellmanager']['body']['del']['confirm'](ids.length > 1 ? ids.length:ids[0]),
+      LANG['shellmanager']['body']['del']['confirm'](ids.length > 1 ? ids.length : ids[0]),
       {
         icon: 2,
         shift: 6,
@@ -813,8 +837,8 @@ class ADefault {
       },
       (_) => {
         layer.close(_);
-        ids.map((p)=>{
-          if(self.shellmanager_settings.bodys.hasOwnProperty(p)) {
+        ids.map((p) => {
+          if (self.shellmanager_settings.bodys.hasOwnProperty(p)) {
             delete self.shellmanager_settings.bodys[p];
           }
         });
